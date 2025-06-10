@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { CheckCircle, Download, FileCheck, Loader2, Share2, XCircle } from "lucide-react"
-import QRCode from "qrcode.react"
+import { toCanvas } from "qrcode"
+import QRCode from "qrcode.react"; 
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -76,80 +77,75 @@ export default function CertificatePage() {
     })
   }
 
-  const downloadCertificate = () => {
-    if (!certificate) return;
-  
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-  
-    // Set canvas size
-    canvas.width = 1000;
-    canvas.height = 700;
-  
-    // Background
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-    // Border
-    ctx.strokeStyle = "#3b82f6";
-    ctx.lineWidth = 10;
-    ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-  
-    // Title
-    ctx.font = "bold 48px Arial";
-    ctx.fillStyle = "#3b82f6";
-    ctx.textAlign = "center";
-    ctx.fillText("CERTIFICATE", canvas.width / 2, 100);
-  
-    // Content
-    ctx.font = "bold 24px Arial";
-    ctx.fillStyle = "#000000";
-    ctx.fillText("This is to certify that", canvas.width / 2, 180);
-  
-    // Student name
-    ctx.font = "bold 36px Arial";
-    ctx.fillText(certificate.studentName, canvas.width / 2, 250);
-  
-    // Course details
-    ctx.font = "24px Arial";
-    ctx.fillText(`has successfully completed the course`, canvas.width / 2, 320);
-  
-    // Course name
-    ctx.font = "bold 30px Arial";
-    ctx.fillText(certificate.courseName, canvas.width / 2, 380);
-  
-    // Institution
-    ctx.font = "24px Arial";
-    ctx.fillText(`from`, canvas.width / 2, 440);
-    ctx.font = "bold 28px Arial";
-    ctx.fillText(certificate.institutionName, canvas.width / 2, 490);
-  
-    // Date
-    ctx.font = "20px Arial";
-    ctx.fillText(`Issued on: ${formatDate(certificate.issueDate)}`, canvas.width / 2, 550);
-  
-    // Certificate ID
-    ctx.font = "16px Arial";
-    ctx.fillText(`Certificate ID: ${certificateId}`, canvas.width / 2, 590);
-  
-    // Generate QR code as an image
-    const qrCodeCanvas = document.createElement("canvas");
-    QRCode.toCanvas(qrCodeCanvas, `${window.location.origin}/verify?id=${certificateId}`, {
-      width: 120,
-      height: 120,
-    });
-  
-    setTimeout(() => {
-      ctx.drawImage(qrCodeCanvas, canvas.width - 150, canvas.height - 150, 120, 120);
-  
-      // Create download link
-      const link = document.createElement("a");
-      link.download = `certificate-${certificateId}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    }, 500); // Wait for the QR code to render before drawing
-  };
+  const downloadCertificate = async () => {
+  if (!certificate || !certificateId) return;
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  canvas.width = 1000;
+  canvas.height = 700;
+
+  // Background
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Border
+  ctx.strokeStyle = "#3b82f6";
+  ctx.lineWidth = 10;
+  ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+
+  // Title
+  ctx.font = "bold 48px Arial";
+  ctx.fillStyle = "#3b82f6";
+  ctx.textAlign = "center";
+  ctx.fillText("CERTIFICATE", canvas.width / 2, 100);
+
+  // Content
+  ctx.font = "bold 24px Arial";
+  ctx.fillStyle = "#000";
+  ctx.fillText("This is to certify that", canvas.width / 2, 180);
+
+  // Name
+  ctx.font = "bold 36px Arial";
+  ctx.fillText(certificate.studentName, canvas.width / 2, 250);
+
+  // Course
+  ctx.font = "24px Arial";
+  ctx.fillText("has successfully completed the course", canvas.width / 2, 320);
+  ctx.font = "bold 30px Arial";
+  ctx.fillText(certificate.courseName, canvas.width / 2, 380);
+
+  // Institution
+  ctx.font = "24px Arial";
+  ctx.fillText("from", canvas.width / 2, 440);
+  ctx.font = "bold 28px Arial";
+  ctx.fillText(certificate.institutionName, canvas.width / 2, 490);
+
+  // Date
+  ctx.font = "20px Arial";
+  ctx.fillText(`Issued on: ${formatDate(certificate.issueDate)}`, canvas.width / 2, 550);
+
+  // Certificate ID
+  ctx.font = "16px Arial";
+  ctx.fillText(`Certificate ID: ${certificateId}`, canvas.width / 2, 590);
+
+  // Generate QR
+  const qrCodeCanvas = document.createElement("canvas");
+  await toCanvas(qrCodeCanvas, `${window.location.origin}/verify?id=${certificateId}`, {
+  width: 120,
+  margin: 1,
+});
+
+  ctx.drawImage(qrCodeCanvas, canvas.width - 150, canvas.height - 150, 120, 120);
+
+  // Trigger download
+  const link = document.createElement("a");
+  link.download = `certificate-${certificateId}.png`;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+};
   
 
   const shareCertificate = async () => {

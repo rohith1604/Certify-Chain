@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 contract CertifyChain {
-    // Structs
+   
     struct Institution {
         string name;
         string email;
@@ -19,23 +19,23 @@ contract CertifyChain {
         bool isValid;
     }
     
-    // Mappings
+    
     mapping(address => Institution) public institutions;
     mapping(string => Certificate) public certificates;
     mapping(address => string[]) public institutionCertificates;
     
-    // Events
+    
     event InstitutionRegistered(address indexed institutionAddress, string name, uint256 timestamp);
     event CertificateIssued(string certificateId, string studentName, address indexed issuerAddress, uint256 timestamp);
     event CertificateRevoked(string certificateId, address indexed issuerAddress, uint256 timestamp);
     
-    // Modifiers
+    
     modifier onlyRegisteredInstitution() {
         require(institutions[msg.sender].isRegistered, "Institution not registered");
         _;
     }
     
-    // Functions
+  
     function registerInstitution(string memory _name, string memory _email) public {
         require(!institutions[msg.sender].isRegistered, "Institution already registered");
         require(bytes(_name).length > 0, "Name cannot be empty");
